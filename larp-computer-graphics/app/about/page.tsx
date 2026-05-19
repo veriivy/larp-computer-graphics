@@ -1,105 +1,138 @@
+import { Playfair_Display } from 'next/font/google'
 import Link from 'next/link'
-import { ArrowLeft, Grid3x3, Layers, Boxes, Sparkles } from 'lucide-react'
+import { Grid3x3, Layers, Boxes, Sparkles } from 'lucide-react'
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  style: ['normal', 'italic'],
+})
+
+const topics = [
+  {
+    icon: Grid3x3,
+    title: 'Basic Transformations',
+    numeral: 'I',
+    href: '/transformations',
+    desc: 'Reflections, rotations, scaling, shears, and projections using 2×2 matrices. Includes an interactive timed game.',
+  },
+  {
+    icon: Layers,
+    title: 'Homogeneous Coordinates',
+    numeral: 'II',
+    href: '/homogeneous',
+    desc: 'How lifting 2D points into 3D with a "1" coordinate enables translation via matrix multiplication.',
+  },
+  {
+    icon: Boxes,
+    title: 'Composite Transformations',
+    numeral: 'III',
+    href: '/composite',
+    desc: 'Chaining multiple 3×3 homogeneous transformations into a single matrix. Another timed challenge game.',
+  },
+  {
+    icon: Sparkles,
+    title: '3D Perspective Projection',
+    numeral: 'IV',
+    href: '/perspective',
+    desc: 'How 3D objects are mapped to 2D screens using similar triangles and the perspective division formula.',
+  },
+]
 
 export default function AboutPage() {
-  const topics = [
-    {
-      icon: Grid3x3,
-      title: 'Basic Transformations',
-      href: '/transformations',
-      gradient: 'from-blue-500 to-cyan-500',
-      desc: 'Reflections, rotations, scaling, shears, and projections using 2×2 matrices. Includes an interactive timed game.',
-    },
-    {
-      icon: Layers,
-      title: 'Homogeneous Coordinates',
-      href: '/homogeneous',
-      gradient: 'from-purple-500 to-pink-500',
-      desc: 'How lifting 2D points into 3D with a "1" coordinate enables translation via matrix multiplication.',
-    },
-    {
-      icon: Boxes,
-      title: 'Composite Transformations',
-      href: '/composite',
-      gradient: 'from-orange-500 to-red-500',
-      desc: 'Chaining multiple 3×3 homogeneous transformations into a single matrix. Another timed challenge game.',
-    },
-    {
-      icon: Sparkles,
-      title: '3D Perspective Projection',
-      href: '/perspective',
-      gradient: 'from-green-500 to-emerald-500',
-      desc: 'How 3D objects are mapped to 2D screens using similar triangles and the perspective division formula.',
-    },
-  ]
-
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      <Link href="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Home
-      </Link>
+    <div className="bg-[#0e0c09] min-h-screen px-6 py-12">
+      <div className="max-w-4xl mx-auto">
 
-      <h1 className="text-4xl font-bold text-white mb-4">About This Project</h1>
-      <p className="text-slate-400 text-lg mb-10">
-        An interactive research project exploring how linear algebra underpins modern computer graphics,
-        built for a college linear algebra class.
-      </p>
-
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 mb-10">
-        <h2 className="text-xl font-bold text-white mb-3">The Big Picture</h2>
-        <p className="text-slate-400 mb-4">
-          Every image you see in a 3D game, animated film, or CAD program is generated through a pipeline of matrix multiplications.
-          Vertices of a 3D model are transformed, projected, and rasterized — all using the linear algebra concepts explored here.
-        </p>
-        <p className="text-slate-400">
-          The same math that handles a simple reflection in a 2×2 matrix scales up to the 4×4 transformation stacks
-          used by GPUs to render millions of triangles per frame.
-        </p>
-      </div>
-
-      <h2 className="text-2xl font-bold text-white mb-5">What&apos;s Inside</h2>
-      <div className="grid sm:grid-cols-2 gap-4 mb-10">
-        {topics.map(t => {
-          const Icon = t.icon
-          return (
-            <Link
-              key={t.href}
-              href={t.href}
-              className="group bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5 hover:border-slate-600 transition-all duration-200"
-            >
-              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${t.gradient} flex items-center justify-center mb-3`}>
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold text-white mb-1.5">{t.title}</h3>
-              <p className="text-slate-400 text-sm">{t.desc}</p>
-            </Link>
-          )
-        })}
-      </div>
-
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 mb-10">
-        <h2 className="text-xl font-bold text-white mb-3">Key Concepts Covered</h2>
-        <ul className="space-y-2 text-slate-400 text-sm">
-          <li className="flex gap-2"><span className="text-blue-400 mt-0.5">•</span>Linear transformations and their matrix representations</li>
-          <li className="flex gap-2"><span className="text-blue-400 mt-0.5">•</span>Why translation is not a linear transformation in standard coordinates</li>
-          <li className="flex gap-2"><span className="text-blue-400 mt-0.5">•</span>Homogeneous coordinates: embedding n-D in (n+1)-D to unify all affine transformations</li>
-          <li className="flex gap-2"><span className="text-blue-400 mt-0.5">•</span>Non-commutativity of matrix multiplication and its geometric consequence</li>
-          <li className="flex gap-2"><span className="text-blue-400 mt-0.5">•</span>Perspective projection: the math behind how a camera sees the world</li>
-          <li className="flex gap-2"><span className="text-blue-400 mt-0.5">•</span>The full 3D rendering pipeline from model space to screen space</li>
-        </ul>
-      </div>
-
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-        <h2 className="text-xl font-bold text-white mb-3">Technology</h2>
-        <div className="flex flex-wrap gap-3 text-sm">
-          {['Next.js 16', 'React 19', 'TypeScript', 'Tailwind CSS v4', 'HTML Canvas API'].map(t => (
-            <span key={t} className="px-3 py-1 bg-slate-700 rounded-full text-slate-300">{t}</span>
-          ))}
+        <div className="mb-12 text-center">
+          <div className="mb-6 flex items-center justify-center gap-4">
+            <span className="h-px w-16 bg-amber-300/30" />
+            <span className="text-[10px] font-light uppercase tracking-[0.55em] text-amber-300/50">About</span>
+            <span className="h-px w-16 bg-amber-300/30" />
+          </div>
+          <h1 className={`${playfair.className} text-4xl sm:text-5xl font-bold italic text-amber-50 mb-4`}>
+            About This Project
+          </h1>
+          <p className="text-slate-400 max-w-2xl mx-auto leading-relaxed text-sm">
+            An interactive research project exploring how linear algebra underpins modern computer graphics,
+            built for a college linear algebra class.
+          </p>
         </div>
-        <p className="text-slate-400 text-sm mt-4">
-          All visualizations are rendered with the native HTML Canvas API — no external graphics libraries.
-          Game state and leaderboards use localStorage for persistence across sessions.
+
+        <div className="border border-amber-900/25 bg-[#131008] p-6 mb-10">
+          <h2 className={`${playfair.className} text-xl font-semibold text-amber-100 mb-3`}>The Big Picture</h2>
+          <p className="text-slate-400 mb-4 leading-relaxed text-sm">
+            Every image you see in a 3D game, animated film, or CAD program is generated through a pipeline of matrix multiplications.
+            Vertices of a 3D model are transformed, projected, and rasterized — all using the linear algebra concepts explored here.
+          </p>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            The same math that handles a simple reflection in a 2×2 matrix scales up to the 4×4 transformation stacks
+            used by GPUs to render millions of triangles per frame.
+          </p>
+        </div>
+
+        <p className={`${playfair.className} text-[10px] uppercase tracking-[0.6em] text-amber-600/40 mb-6 text-center`}>
+          The Curriculum
         </p>
+        <div className="grid sm:grid-cols-2 gap-4 mb-10">
+          {topics.map(t => {
+            const Icon = t.icon
+            return (
+              <Link
+                key={t.href}
+                href={t.href}
+                className="group flex flex-col gap-3 border border-amber-900/25 bg-[#131008] p-6 transition-all duration-300 hover:border-amber-700/40 hover:bg-[#1b1509]"
+              >
+                <div className="flex items-start justify-between">
+                  <span className={`${playfair.className} text-3xl font-light italic text-amber-700/35 transition-colors duration-300 group-hover:text-amber-600/55`}>
+                    {t.numeral}
+                  </span>
+                  <Icon className="mt-1 h-4 w-4 text-amber-700/35 transition-colors duration-300 group-hover:text-amber-600/55" />
+                </div>
+                <h3 className={`${playfair.className} text-lg font-semibold text-amber-50/85 transition-colors duration-300 group-hover:text-amber-50`}>
+                  {t.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-slate-500 transition-colors duration-300 group-hover:text-slate-400">
+                  {t.desc}
+                </p>
+              </Link>
+            )
+          })}
+        </div>
+
+        <div className="border border-amber-900/25 bg-[#131008] p-6 mb-8">
+          <h2 className={`${playfair.className} text-xl font-semibold text-amber-100 mb-4`}>Key Concepts</h2>
+          <ul className="space-y-2 text-slate-400 text-sm">
+            {[
+              'Linear transformations and their matrix representations',
+              'Why translation is not a linear transformation in standard coordinates',
+              'Homogeneous coordinates: embedding n-D in (n+1)-D to unify all affine transformations',
+              'Non-commutativity of matrix multiplication and its geometric consequence',
+              'Perspective projection: the math behind how a camera sees the world',
+              'The full 3D rendering pipeline from model space to screen space',
+            ].map(item => (
+              <li key={item} className="flex gap-2">
+                <span className="text-amber-700/50 mt-0.5 shrink-0">·</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="border border-amber-900/25 bg-[#131008] p-6">
+          <h2 className={`${playfair.className} text-xl font-semibold text-amber-100 mb-4`}>Technology</h2>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {['Next.js 16', 'React 19', 'TypeScript', 'Tailwind CSS v4', 'HTML Canvas API'].map(t => (
+              <span key={t} className="px-3 py-1 border border-amber-900/30 text-amber-200/50 text-xs font-mono">
+                {t}
+              </span>
+            ))}
+          </div>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            All visualizations are rendered with the native HTML Canvas API — no external graphics libraries.
+            Game state and leaderboards use localStorage for persistence across sessions.
+          </p>
+        </div>
       </div>
     </div>
   )

@@ -1,8 +1,15 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Playfair_Display } from 'next/font/google'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, RotateCcw, Clock, Trophy } from 'lucide-react'
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  style: ['normal', 'italic'],
+})
 
 type M3 = [[number, number, number], [number, number, number], [number, number, number]]
 type Pt = [number, number]
@@ -18,9 +25,7 @@ function transformShape(m: M3, shape: Pt[]): Pt[] {
   return shape.map(p => applyM3(m, p))
 }
 
-function mKey(m: M3) {
-  return m.flat().join(',')
-}
+function mKey(m: M3) { return m.flat().join(',') }
 
 const SHAPE: Pt[] = [
   [-0.6, 0.4], [0.4, 0.4], [0.4, 0.8],
@@ -108,24 +113,25 @@ const QUESTIONS: {
   },
 ]
 
-// For q2 and q3 the options are duplicated — fix unique keys by using index
-function Matrix3x3Display({ m }: { m: M3 }) {
+// ── Matrix display ─────────────────────────────────────────────────────────────
+
+function Matrix3x3({ m }: { m: M3 }) {
   return (
-    <div className="font-mono text-xs inline-flex items-center gap-0.5">
-      <span className="text-slate-400 text-lg leading-[1.05]" style={{ fontWeight: 100 }}>
-        ⎡<br />⎢<br />⎣
-      </span>
-      <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 tabular-nums text-center">
+    <div className="inline-flex items-stretch font-mono text-xs">
+      <div className="w-2 border-l-2 border-t-2 border-b-2 border-amber-500/50 rounded-tl rounded-bl" />
+      <div className="grid grid-cols-3 gap-x-2.5 gap-y-0.5 tabular-nums py-1 px-0.5 text-right">
         {m.map((row, r) =>
-          row.map((v, c) => <span key={`${r}${c}`} className="text-slate-200">{v}</span>)
+          row.map((v, c) => (
+            <span key={`${r}${c}`} className="text-amber-100/85 min-w-[1.5ch]">{v}</span>
+          ))
         )}
       </div>
-      <span className="text-slate-400 text-lg leading-[1.05]" style={{ fontWeight: 100 }}>
-        ⎤<br />⎥<br />⎦
-      </span>
+      <div className="w-2 border-r-2 border-t-2 border-b-2 border-amber-500/50 rounded-tr rounded-br" />
     </div>
   )
 }
+
+// ── Canvas drawing ─────────────────────────────────────────────────────────────
 
 function drawScene(canvas: HTMLCanvasElement, target: Pt[], flash: 'correct' | 'wrong' | null) {
   const ctx = canvas.getContext('2d')
@@ -134,11 +140,11 @@ function drawScene(canvas: HTMLCanvasElement, target: Pt[], flash: 'correct' | '
   const cx = Math.round(W * 0.42), cy = Math.round(H / 2)
   const sc = 50
 
-  ctx.clearRect(0, 0, W, H)
-  ctx.fillStyle = '#0f172a'
+  ctx.fillStyle = '#100e0b'
   ctx.fillRect(0, 0, W, H)
 
-  ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1
+  ctx.strokeStyle = '#1e1a14'
+  ctx.lineWidth = 1
   for (let i = -5; i <= 7; i++) {
     ctx.beginPath(); ctx.moveTo(cx + i * sc, 0); ctx.lineTo(cx + i * sc, H); ctx.stroke()
   }
@@ -146,11 +152,13 @@ function drawScene(canvas: HTMLCanvasElement, target: Pt[], flash: 'correct' | '
     ctx.beginPath(); ctx.moveTo(0, cy + i * sc); ctx.lineTo(W, cy + i * sc); ctx.stroke()
   }
 
-  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5
+  ctx.strokeStyle = '#3d3020'
+  ctx.lineWidth = 1.5
   ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke()
   ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke()
 
-  ctx.fillStyle = '#475569'; ctx.font = '10px monospace'
+  ctx.fillStyle = '#4a3828'
+  ctx.font = '10px monospace'
   ctx.textAlign = 'center'
   for (let i = -4; i <= 6; i++) {
     if (i === 0) continue
@@ -162,34 +170,46 @@ function drawScene(canvas: HTMLCanvasElement, target: Pt[], flash: 'correct' | '
     ctx.fillText(String(-i), cx - 3, cy + i * sc + 4)
   }
 
-  const toC = (p: Pt): Pt => [cx + p[0] * sc, cy - p[1] * sc]
+  const toC = (p: Pt): [number, number] => [cx + p[0] * sc, cy - p[1] * sc]
 
-  const drawPoly = (pts: Pt[], fill: string, stroke: string, dash = false) => {
+  const drawPoly = (pts: Pt[], fill: string, stroke: string, lw: number, dashed: boolean) => {
     if (!pts.length) return
+    const s = pts.map(toC)
     ctx.beginPath()
-    ctx.moveTo(...toC(pts[0]))
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(...toC(pts[i]))
+    ctx.moveTo(s[0][0], s[0][1])
+    for (let i = 1; i < s.length; i++) ctx.lineTo(s[i][0], s[i][1])
     ctx.closePath()
-    if (dash) ctx.setLineDash([6, 4])
     ctx.fillStyle = fill; ctx.fill()
-    ctx.strokeStyle = stroke; ctx.lineWidth = 2.5; ctx.stroke()
+    ctx.strokeStyle = stroke; ctx.lineWidth = lw
+    ctx.setLineDash(dashed ? [6, 4] : [])
+    ctx.stroke()
     ctx.setLineDash([])
   }
 
-  drawPoly(target, 'rgba(34,197,94,0.10)', '#22c55e80', true)
-  drawPoly(SHAPE, 'rgba(59,130,246,0.18)', '#3b82f6')
+  drawPoly(target, 'rgba(254,243,199,0.07)', 'rgba(254,243,199,0.45)', 2.5, true)
+  drawPoly(SHAPE, 'rgba(217,119,6,0.18)', '#d97706', 2.5, false)
 
   if (flash) {
-    ctx.fillStyle = flash === 'correct' ? 'rgba(34,197,94,0.10)' : 'rgba(239,68,68,0.10)'
+    ctx.fillStyle = flash === 'correct' ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)'
     ctx.fillRect(0, 0, W, H)
   }
 
-  ctx.font = '12px sans-serif'; ctx.textAlign = 'left'
-  ctx.fillStyle = '#3b82f6'; ctx.fillRect(8, 8, 11, 11)
-  ctx.fillStyle = '#94a3b8'; ctx.fillText('Original', 23, 18)
-  ctx.fillStyle = '#22c55e80'; ctx.fillRect(8, 25, 11, 11)
-  ctx.fillStyle = '#94a3b8'; ctx.fillText('Target', 23, 35)
+  ctx.font = '11px monospace'
+  ctx.textAlign = 'left'
+  ctx.fillStyle = '#d97706'
+  ctx.fillRect(10, 10, 12, 9)
+  ctx.fillStyle = '#7a5c3a'
+  ctx.fillText('Original', 26, 19)
+  ctx.strokeStyle = 'rgba(254,243,199,0.45)'
+  ctx.setLineDash([5, 3])
+  ctx.lineWidth = 1.5
+  ctx.beginPath(); ctx.moveTo(10, 30); ctx.lineTo(22, 30); ctx.stroke()
+  ctx.setLineDash([])
+  ctx.fillStyle = '#7a5c3a'
+  ctx.fillText('Target', 26, 34)
 }
+
+// ── Page ───────────────────────────────────────────────────────────────────────
 
 type Phase = 'intro' | 'playing' | 'done'
 
@@ -206,6 +226,7 @@ export default function CompositePage() {
   const [leaderboard, setLeaderboard] = useState<{ name: string; time: number; score: number }[]>([])
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const total = QUESTIONS.length
 
   useEffect(() => {
     try { setLeaderboard(JSON.parse(localStorage.getItem('comp-lb') || '[]')) } catch {}
@@ -228,7 +249,7 @@ export default function CompositePage() {
     drawScene(
       canvasRef.current,
       transformShape(QUESTIONS[qIndex].answer, SHAPE),
-      correct === null ? null : correct ? 'correct' : 'wrong'
+      correct === null ? null : correct ? 'correct' : 'wrong',
     )
   }, [phase, qIndex, correct])
 
@@ -259,164 +280,196 @@ export default function CompositePage() {
   }
 
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
-  const total = QUESTIONS.length
+
+  // ── Intro ──────────────────────────────────────────────────────────────────
 
   if (phase === 'intro') return (
-    <div className="max-w-5xl mx-auto px-6 py-12">
-      <Link href="/homogeneous" className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Homogeneous Coordinates
-      </Link>
-      <h1 className="text-4xl font-bold text-white mb-3">Composite Transformations</h1>
-      <p className="text-slate-400 text-lg mb-8">
-        Chain multiple transformations into one matrix. Using homogeneous 3×3 matrices, translation joins the party.
-      </p>
+    <div className="bg-[#0e0c09] min-h-screen px-6 py-12">
+      <div className="max-w-5xl mx-auto">
 
-      <div className="grid md:grid-cols-2 gap-6 mb-10">
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-white mb-3">The Formula</h2>
-          <p className="text-slate-400 text-sm mb-4">
-            To apply M₁ first and then M₂, compute the combined matrix:
-          </p>
-          <div className="bg-slate-900 rounded-xl p-4 font-mono text-center text-sm">
-            <span className="text-amber-400">Mₜₒₜₐₗ</span>
-            <span className="text-slate-400"> = </span>
-            <span className="text-blue-400">M₁</span>
-            <span className="text-slate-400"> · </span>
-            <span className="text-purple-400">M₂</span>
+        <div className="mb-12 text-center">
+          <div className="mb-6 flex items-center justify-center gap-4">
+            <span className="h-px w-16 bg-amber-300/30" />
+            <span className="text-[10px] font-light uppercase tracking-[0.55em] text-amber-300/50">Module III</span>
+            <span className="h-px w-16 bg-amber-300/30" />
           </div>
-          <p className="text-slate-500 text-xs mt-3">
-            (Row-vector convention: point · Mₜₒₜₐₗ = transformed point)
+          <h1 className={`${playfair.className} text-4xl sm:text-5xl font-bold italic text-amber-50 mb-4`}>
+            Composite Transformations
+          </h1>
+          <p className="text-slate-400 max-w-2xl mx-auto leading-relaxed text-sm">
+            Chain multiple transformations into one matrix. Using homogeneous 3×3 matrices,
+            translation joins the party — and order always matters.
           </p>
         </div>
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-white mb-3">Order Matters!</h2>
-          <p className="text-slate-400 text-sm mb-3">
-            Matrix multiplication is <strong className="text-red-400">not commutative</strong>.
-            Translate-then-rotate ≠ rotate-then-translate.
+
+        <div className="grid md:grid-cols-2 gap-4 mb-10">
+          <div className="border border-amber-900/25 bg-[#131008] p-6">
+            <h2 className={`${playfair.className} text-xl font-semibold text-amber-100 mb-3`}>The Formula</h2>
+            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+              To apply M₁ first and then M₂, compute the combined matrix:
+            </p>
+            <div className="bg-[#0e0c09] border border-amber-900/20 p-4 font-mono text-center text-sm">
+              <span className="text-amber-400">Mₜₒₜₐₗ</span>
+              <span className="text-slate-500"> = </span>
+              <span className="text-amber-200/70">M₁</span>
+              <span className="text-slate-500"> · </span>
+              <span className="text-amber-200/50">M₂</span>
+            </div>
+            <p className="text-slate-500 text-xs mt-3">
+              Row-vector convention: point · Mₜₒₜₐₗ = transformed point
+            </p>
+          </div>
+          <div className="border border-amber-900/25 bg-[#131008] p-6">
+            <h2 className={`${playfair.className} text-xl font-semibold text-amber-100 mb-3`}>Order Matters!</h2>
+            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+              Matrix multiplication is <strong className="text-amber-400/80">not commutative</strong>.
+              Translate-then-rotate ≠ rotate-then-translate.
+            </p>
+            <div className="bg-[#0e0c09] border border-amber-900/20 p-3 font-mono text-xs text-amber-600/70">
+              M₁ · M₂ ≠ M₂ · M₁  (in general)
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-amber-900/25 bg-[#131008] p-6 mb-10">
+          <h2 className={`${playfair.className} text-xl font-semibold text-amber-100 mb-4`}>Example: Scale ×2, then translate right 3</h2>
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="text-center">
+              <p className="text-amber-700/50 text-xs mb-2">M₁ (scale 2)</p>
+              <Matrix3x3 m={[[2,0,0],[0,2,0],[0,0,1]]} />
+            </div>
+            <span className="text-amber-700/40 text-xl">·</span>
+            <div className="text-center">
+              <p className="text-amber-700/50 text-xs mb-2">M₂ (translate right 3)</p>
+              <Matrix3x3 m={[[1,0,0],[0,1,0],[3,0,1]]} />
+            </div>
+            <span className="text-amber-700/40 text-xl">=</span>
+            <div className="text-center">
+              <p className="text-amber-400/70 text-xs mb-2">Mₜₒₜₐₗ</p>
+              <Matrix3x3 m={[[2,0,0],[0,2,0],[3,0,1]]} />
+            </div>
+          </div>
+          <p className="text-slate-500 text-xs mt-4">
+            Result: a point (x, y) maps to (2x + 3, 2y) — scaled by 2, then moved 3 units right.
           </p>
-          <div className="bg-slate-900 rounded-xl p-3 font-mono text-xs text-red-400">
-            M₁ · M₂ ≠ M₂ · M₁ (in general)
-          </div>
         </div>
-      </div>
 
-      {/* Example */}
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 mb-10">
-        <h2 className="text-xl font-bold text-white mb-4">Example: Scale × 2, then translate right 3</h2>
-        <div className="flex flex-wrap items-center gap-4 text-sm">
-          <div className="text-center">
-            <p className="text-slate-400 text-xs mb-2">M₁ (scale 2)</p>
-            <Matrix3x3Display m={[[2,0,0],[0,2,0],[0,0,1]]} />
-          </div>
-          <span className="text-slate-500 text-xl">·</span>
-          <div className="text-center">
-            <p className="text-slate-400 text-xs mb-2">M₂ (translate right 3)</p>
-            <Matrix3x3Display m={[[1,0,0],[0,1,0],[3,0,1]]} />
-          </div>
-          <span className="text-slate-500 text-xl">=</span>
-          <div className="text-center">
-            <p className="text-amber-400 text-xs mb-2">Mₜₒₜₐₗ</p>
-            <Matrix3x3Display m={[[2,0,0],[0,2,0],[3,0,1]]} />
-          </div>
+        <div className="border border-amber-900/30 bg-[#131008] p-8 sm:p-10 text-center">
+          <h2 className={`${playfair.className} text-2xl font-semibold text-amber-100 mb-3`}>
+            Ready for the Challenge?
+          </h2>
+          <p className="text-slate-400 mb-8 max-w-md mx-auto text-sm leading-relaxed">
+            {total} questions using 3×3 homogeneous matrices. Pick the correct composite matrix that maps the amber shape to the cream target.
+          </p>
+          <button
+            onClick={startGame}
+            className="group relative inline-block overflow-hidden border border-amber-200/45 px-12 py-[13px]"
+          >
+            <span className="absolute inset-0 translate-y-full bg-amber-100 transition-transform duration-500 ease-in-out group-hover:translate-y-0" aria-hidden="true" />
+            <span className="relative z-10 text-[11px] font-normal uppercase tracking-[0.5em] text-amber-100 transition-all duration-500 group-hover:tracking-[0.65em] group-hover:text-slate-800">
+              Start Game
+            </span>
+          </button>
+
+          {leaderboard.length > 0 && (
+            <div className="mt-10 text-left max-w-sm mx-auto">
+              <p className={`${playfair.className} text-[10px] uppercase tracking-[0.45em] text-amber-700/50 mb-3 flex items-center gap-2`}>
+                <Trophy className="w-3 h-3" /> Leaderboard
+              </p>
+              {leaderboard.map((e, i) => (
+                <div key={i} className="flex items-center gap-3 py-2 border-b border-amber-900/15">
+                  <span className={`${playfair.className} italic text-amber-700/40 w-5 text-right text-sm`}>{i + 1}</span>
+                  <span className="text-amber-100/70 flex-1 text-sm">{e.name}</span>
+                  <span className="text-amber-400/70 font-mono text-xs">{e.score}/{total}</span>
+                  <span className="text-slate-500 font-mono text-xs">{fmt(e.time)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <p className="text-slate-400 text-xs mt-4">
-          Result: a point (x, y) maps to (2x + 3, 2y) — scaled by 2, then moved 3 units right.
-        </p>
-      </div>
-
-      <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-2xl p-8 text-center">
-        <h2 className="text-2xl font-bold text-white mb-3">Ready for the Challenge?</h2>
-        <p className="text-slate-400 mb-6">
-          {total} questions using 3×3 homogeneous matrices. Pick the correct composite matrix that maps the blue shape to the green target.
-        </p>
-        <button
-          onClick={startGame}
-          className="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg text-white font-semibold hover:opacity-90 transition-opacity"
-        >
-          Start Game
-        </button>
-        {leaderboard.length > 0 && (
-          <div className="mt-8 text-left">
-            <h3 className="text-slate-300 font-semibold mb-3 flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-yellow-400" /> Leaderboard
-            </h3>
-            {leaderboard.map((e, i) => (
-              <div key={i} className="flex items-center gap-3 text-sm py-0.5">
-                <span className="text-slate-500 w-5 text-right">{i + 1}.</span>
-                <span className="text-white flex-1">{e.name}</span>
-                <span className="text-green-400 font-mono">{e.score}/{total}</span>
-                <span className="text-slate-400 font-mono">{fmt(e.time)}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )
 
+  // ── Playing ────────────────────────────────────────────────────────────────
+
   if (phase === 'playing') {
     const q = QUESTIONS[qIndex]
     return (
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-slate-400 text-sm">Question {qIndex + 1} / {total}</div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 text-slate-300 font-mono text-sm">
-              <Clock className="w-4 h-4 text-slate-500" /> {fmt(time)}
+      <div className="bg-[#0e0c09] min-h-screen px-6 py-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-between mb-5">
+            <span className={`${playfair.className} text-sm italic text-amber-700/50`}>
+              Question {qIndex + 1} of {total}
+            </span>
+            <div className="flex items-center gap-5">
+              <div className="flex items-center gap-1.5 text-amber-200/50 font-mono text-sm">
+                <Clock className="w-3.5 h-3.5 text-amber-700/50" /> {fmt(time)}
+              </div>
+              <span className="text-sm text-amber-700/50">
+                Score: <span className="text-amber-200/70 font-semibold">{score}</span>
+              </span>
             </div>
-            <span className="text-sm text-slate-400">Score: <span className="text-white font-semibold">{score}</span></span>
-          </div>
-        </div>
-
-        <div className="flex gap-2 mb-6">
-          {QUESTIONS.map((_, i) => (
-            <div key={i} className={`h-1.5 flex-1 rounded-full ${i < qIndex ? 'bg-orange-500' : i === qIndex ? 'bg-red-500' : 'bg-slate-700'}`} />
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8 items-start">
-          <div>
-            <h2 className="text-xl font-bold text-white mb-2">{q.desc}</h2>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {q.steps.map((s, i) => (
-                <span key={i} className="text-xs bg-slate-800 border border-slate-700 px-2 py-1 rounded text-slate-400 font-mono">{s}</span>
-              ))}
-            </div>
-            <canvas
-              ref={canvasRef}
-              width={460}
-              height={320}
-              className="w-full rounded-xl border border-slate-700/50"
-            />
           </div>
 
-          <div>
-            <p className="text-slate-400 text-sm mb-4 font-medium uppercase tracking-wide">Select the correct 3×3 composite matrix:</p>
-            <div className="grid grid-cols-1 gap-3">
-              {shuffled.map((opt, idx) => {
-                let border = 'border-slate-700 hover:border-slate-500'
-                let bg = 'bg-slate-800/60 hover:bg-slate-800'
-                if (selected !== null) {
+          <div className="flex gap-2 mb-7">
+            {QUESTIONS.map((_, i) => (
+              <div
+                key={i}
+                className={`h-0.5 flex-1 ${
+                  i < qIndex ? 'bg-amber-600/70' : i === qIndex ? 'bg-amber-400/60' : 'bg-amber-900/30'
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 items-start">
+            <div>
+              <h2 className={`${playfair.className} text-xl font-semibold text-amber-50 mb-2`}>{q.desc}</h2>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {q.steps.map((s, i) => (
+                  <span key={i} className="text-xs border border-amber-900/30 px-2 py-1 text-amber-700/60 font-mono">{s}</span>
+                ))}
+              </div>
+              <canvas
+                ref={canvasRef}
+                width={460}
+                height={320}
+                className="w-full border border-amber-900/25"
+              />
+            </div>
+
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.45em] text-amber-700/50 mb-4">
+                Select the correct 3×3 composite matrix
+              </p>
+              <div className="grid gap-3">
+                {shuffled.map((opt, idx) => {
                   const isAnswer = mKey(opt.m) === mKey(q.answer)
-                  if (idx === selected) {
-                    border = correct ? 'border-green-500' : 'border-red-500'
-                    bg = correct ? 'bg-green-500/10' : 'bg-red-500/10'
-                  } else if (isAnswer) {
-                    border = 'border-green-500/50'; bg = 'bg-green-500/5'
+                  let borderClass = 'border-amber-900/25 hover:border-amber-700/40'
+                  let bgClass = 'bg-[#131008] hover:bg-[#1a1208]'
+                  if (selected !== null) {
+                    if (idx === selected) {
+                      borderClass = correct ? 'border-green-600/60' : 'border-red-600/60'
+                      bgClass = correct ? 'bg-green-900/15' : 'bg-red-900/15'
+                    } else if (isAnswer) {
+                      borderClass = 'border-green-700/40'
+                      bgClass = 'bg-green-900/10'
+                    }
                   }
-                }
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleSelect(idx)}
-                    disabled={selected !== null}
-                    className={`w-full text-left p-4 rounded-xl border ${border} ${bg} transition-all duration-200 disabled:cursor-default`}
-                  >
-                    <div className="text-slate-400 text-xs mb-2">{opt.label}</div>
-                    <Matrix3x3Display m={opt.m} />
-                  </button>
-                )
-              })}
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelect(idx)}
+                      disabled={selected !== null}
+                      className={`w-full text-left p-4 border ${borderClass} ${bgClass} transition-all duration-200 disabled:cursor-default`}
+                    >
+                      <div className="text-amber-700/60 text-xs mb-2">{opt.label}</div>
+                      <Matrix3x3 m={opt.m} />
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -424,52 +477,76 @@ export default function CompositePage() {
     )
   }
 
+  // ── Done ───────────────────────────────────────────────────────────────────
+
   return (
-    <div className="max-w-2xl mx-auto px-6 py-16 text-center">
-      <div className="text-6xl mb-4">{score === total ? '🏆' : score >= total / 2 ? '🎯' : '📚'}</div>
-      <h2 className="text-3xl font-bold text-white mb-2">
-        {score === total ? 'Perfect Score!' : `${score} / ${total} Correct`}
-      </h2>
-      <p className="text-slate-400 mb-2">Time: <span className="text-white font-mono font-semibold">{fmt(time)}</span></p>
-
-      {!submitted ? (
-        <div className="mt-8 bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-          <p className="text-slate-300 mb-4 font-medium">Add to leaderboard</p>
-          <div className="flex gap-3">
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Your name"
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
-            />
-            <button onClick={submitScore} className="px-6 py-2 bg-orange-600 rounded-lg text-white font-semibold hover:bg-orange-500 transition-colors">
-              Submit
-            </button>
-          </div>
+    <div className="bg-[#0e0c09] min-h-screen flex items-center justify-center px-6 py-16">
+      <div className="max-w-md w-full text-center">
+        <div className="mb-6 flex items-center justify-center gap-4">
+          <span className="h-px w-12 bg-amber-300/30" />
+          <span className="text-[10px] tracking-[0.5em] text-amber-300/40 uppercase">Result</span>
+          <span className="h-px w-12 bg-amber-300/30" />
         </div>
-      ) : (
-        <div className="mt-8 bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 text-left">
-          <h3 className="text-slate-300 font-semibold mb-3 flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-yellow-400" /> Leaderboard
-          </h3>
-          {leaderboard.map((e, i) => (
-            <div key={i} className="flex items-center gap-3 text-sm py-1">
-              <span className="text-slate-500 w-5 text-right">{i + 1}.</span>
-              <span className="text-white flex-1">{e.name}</span>
-              <span className="text-green-400 font-mono">{e.score}/{total}</span>
-              <span className="text-slate-400 font-mono">{fmt(e.time)}</span>
+
+        <h2 className={`${playfair.className} text-4xl font-bold italic text-amber-50 mb-2`}>
+          {score === total ? 'Parfait!' : score >= total / 2 ? 'Well done' : 'Keep studying'}
+        </h2>
+        <p className={`${playfair.className} text-lg text-amber-700/60 mb-1`}>{score} / {total} correct</p>
+        <p className="text-slate-500 text-sm mb-8">
+          Time: <span className="text-amber-200/60 font-mono">{fmt(time)}</span>
+        </p>
+
+        {!submitted ? (
+          <div className="border border-amber-900/30 bg-[#131008] p-6 mb-6">
+            <p className={`${playfair.className} text-sm text-amber-200/60 mb-4`}>Add to leaderboard</p>
+            <div className="flex gap-2">
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Your name"
+                className="flex-1 bg-[#0e0c09] border border-amber-900/40 px-4 py-2 text-amber-100/80 placeholder-amber-900/60 focus:outline-none focus:border-amber-700/60 text-sm"
+              />
+              <button
+                onClick={submitScore}
+                className="px-5 py-2 border border-amber-700/50 text-amber-200/70 text-sm hover:bg-amber-900/20 transition-colors"
+              >
+                Submit
+              </button>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="border border-amber-900/30 bg-[#131008] p-6 mb-6 text-left">
+            <p className={`${playfair.className} text-[10px] uppercase tracking-[0.45em] text-amber-700/50 mb-3 flex items-center gap-2`}>
+              <Trophy className="w-3 h-3" /> Leaderboard
+            </p>
+            {leaderboard.map((e, i) => (
+              <div key={i} className="flex items-center gap-3 py-1.5 border-b border-amber-900/15">
+                <span className={`${playfair.className} italic text-amber-700/40 w-5 text-right text-sm`}>{i + 1}</span>
+                <span className="text-amber-100/70 flex-1 text-sm">{e.name}</span>
+                <span className="text-amber-400/70 font-mono text-xs">{e.score}/{total}</span>
+                <span className="text-slate-500 font-mono text-xs">{fmt(e.time)}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
-      <div className="flex gap-3 justify-center mt-6">
-        <button onClick={startGame} className="inline-flex items-center gap-2 px-5 py-3 bg-slate-700 rounded-lg text-white font-semibold hover:bg-slate-600 transition-colors">
-          <RotateCcw className="w-4 h-4" /> Play Again
-        </button>
-        <Link href="/perspective" className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg text-white font-semibold hover:opacity-90 transition-opacity">
-          3D Projection <ArrowRight className="w-4 h-4" />
-        </Link>
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={startGame}
+            className="inline-flex items-center gap-2 px-6 py-3 border border-amber-900/40 text-amber-200/60 text-sm hover:border-amber-700/50 hover:text-amber-200/80 transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Play Again
+          </button>
+          <Link
+            href="/perspective"
+            className="group relative inline-block overflow-hidden border border-amber-200/45 px-6 py-3"
+          >
+            <span className="absolute inset-0 translate-y-full bg-amber-100 transition-transform duration-500 ease-in-out group-hover:translate-y-0" aria-hidden="true" />
+            <span className="relative z-10 text-[11px] font-normal uppercase tracking-[0.4em] text-amber-100 transition-all duration-500 group-hover:text-slate-800 inline-flex items-center gap-2">
+              3D Projection <ArrowRight className="w-3 h-3" />
+            </span>
+          </Link>
+        </div>
       </div>
     </div>
   )

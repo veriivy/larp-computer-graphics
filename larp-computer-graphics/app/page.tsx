@@ -1,111 +1,206 @@
+import { Playfair_Display } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Boxes, Grid3x3, Layers, Sparkles } from "lucide-react";
+import { Grid3x3, Layers, Boxes, Sparkles, ArrowRight } from "lucide-react";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  style: ["normal", "italic"],
+});
+
+const sections = [
+  {
+    title: "Basic Transformations",
+    description:
+      "Reflections, rotations, scaling, shears, and projections — explored through a timed interactive game",
+    href: "/transformations",
+    icon: Grid3x3,
+    numeral: "I",
+  },
+  {
+    title: "Homogeneous Coordinates",
+    description:
+      "How a single extra dimension unifies all affine transformations, including translation",
+    href: "/homogeneous",
+    icon: Layers,
+    numeral: "II",
+  },
+  {
+    title: "Composite Transformations",
+    description:
+      "Chain multiple 3×3 matrices into one and discover why order always matters",
+    href: "/composite",
+    icon: Boxes,
+    numeral: "III",
+  },
+  {
+    title: "3D Perspective Projection",
+    description:
+      "How cameras flatten a three-dimensional world onto a two-dimensional screen",
+    href: "/perspective",
+    icon: Sparkles,
+    numeral: "IV",
+  },
+];
 
 export default function Home() {
-  const sections = [
-    {
-      title: "Basic Transformations",
-      description: "Explore reflections, rotations, scaling, shears, and projections through an interactive game",
-      href: "/transformations",
-      icon: Grid3x3,
-      gradient: "from-blue-500 to-cyan-500"
-    },
-    {
-      title: "Homogeneous Coordinates",
-      description: "Learn how translations work in 2D with 3x3 matrices and homogeneous coordinates",
-      href: "/homogeneous",
-      icon: Layers,
-      gradient: "from-purple-500 to-pink-500"
-    },
-    {
-      title: "Composite Transformations",
-      description: "Master combining multiple transformations into single matrices with timed challenges",
-      href: "/composite",
-      icon: Boxes,
-      gradient: "from-orange-500 to-red-500"
-    },
-    {
-      title: "3D Perspective Projection",
-      description: "Visualize how 3D objects are projected onto 2D screens in computer graphics",
-      href: "/perspective",
-      icon: Sparkles,
-      gradient: "from-green-500 to-emerald-500"
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-6 py-24 sm:py-32">
-          <div className="text-center">
-            <h1 className="text-5xl sm:text-7xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-6">
-              Linear Algebra in
-              <br />
-              Computer Graphics
-            </h1>
-            <p className="text-xl sm:text-2xl text-slate-300 max-w-3xl mx-auto mb-12">
-              An interactive exploration of how matrix transformations power modern graphics rendering
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/transformations"
-                className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                Start Learning
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="/about"
-                className="px-8 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white font-semibold hover:bg-slate-700 transition-all duration-300"
-              >
-                About This Project
-              </Link>
-            </div>
-          </div>
+    <>
+      {/* ─── Hero ─────────────────────────────────────────────────────── */}
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
+        {/* Paris GIF background — place your gif at public/paris.gif */}
+        <div className="absolute inset-0">
+          <Image
+            src="/paris.gif"
+            alt=""
+            fill
+            unoptimized
+            priority
+            className="object-cover"
+            aria-hidden="true"
+          />
         </div>
-      </div>
 
-      {/* Sections Grid */}
-      <div className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="grid md:grid-cols-2 gap-6">
-          {sections.map((section, index) => {
-            const Icon = section.icon;
-            return (
-              <Link
-                key={section.href}
-                href={section.href}
-                className="group relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:border-slate-600 transition-all duration-300 hover:shadow-xl hover:shadow-slate-900/50"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${section.gradient} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300`} />
-                <div className="relative">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${section.gradient} flex items-center justify-center mb-4`}>
-                    <Icon className="w-6 h-6 text-white" />
+        {/* Vignette + dark overlay */}
+        <div className="absolute inset-0 bg-black/55" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, transparent 25%, rgba(0,0,0,0.55) 100%)",
+          }}
+        />
+        {/* Warm amber warmth at the bottom edge */}
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#1a0e05]/70 to-transparent" />
+
+        {/* Hero content */}
+        <div
+          className={`${playfair.className} relative z-10 flex flex-col items-center px-6 text-center`}
+        >
+          {/* Eyebrow line */}
+          <div className="mb-8 flex items-center gap-4">
+            <span className="h-px w-12 bg-amber-300/45 sm:w-20" />
+            <span className="text-[10px] font-light uppercase tracking-[0.55em] text-amber-300/70">
+              Linear Algebra with Remy
+            </span>
+            <span className="h-px w-12 bg-amber-300/45 sm:w-20" />
+          </div>
+
+          {/* Title */}
+          <h1 className="text-amber-50 leading-[1.08]">
+            {/* <span className="block text-5xl font-bold tracking-tight sm:text-7xl">
+              Linear Algebra
+            </span>
+            <span className="my-3 block text-2xl font-normal italic text-amber-200/65 sm:text-3xl">
+              in
+            </span> */}
+            <span className="block text-5xl font-bold tracking-tight sm:text-7xl italic">
+              Computer Graphics
+            </span>
+          </h1>
+
+          {/* Ornament */}
+          <div className="my-9 flex items-center gap-5">
+            <span className="h-px w-16 bg-amber-500/35" />
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              className="fill-amber-500/55"
+              aria-hidden="true"
+            >
+              <path d="M12 0l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 15l-6.2 4.3 2.4-7.4L2 7.4h7.6z" />
+            </svg>
+            <span className="h-px w-16 bg-amber-500/35" />
+          </div>
+
+          {/* Begin button — fill-from-bottom + letter-spacing expand */}
+          <Link
+            href="/transformations"
+            className="group relative inline-block overflow-hidden border border-amber-200/45 px-14 py-[14px]"
+          >
+            {/* Sliding fill */}
+            <span
+              className="absolute inset-0 translate-y-full bg-amber-100 transition-transform duration-500 ease-in-out group-hover:translate-y-0"
+              aria-hidden="true"
+            />
+            <span className="relative z-10 text-[11px] font-normal uppercase tracking-[0.5em] text-amber-100 transition-all duration-500 group-hover:tracking-[0.7em] group-hover:text-slate-800">
+              Begin
+            </span>
+          </Link>
+
+          {/* About link */}
+          <Link
+            href="/about"
+            className="mt-7 text-[10px] uppercase tracking-[0.45em] text-amber-200/35 transition-colors duration-300 hover:text-amber-200/65"
+          >
+            About this project
+          </Link>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-7 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+          <span
+            className={`${playfair.className} text-[9px] uppercase tracking-[0.5em] text-amber-200/28`}
+          >
+            Explore
+          </span>
+          <span className="h-8 w-px bg-gradient-to-b from-amber-200/25 to-transparent" />
+        </div>
+      </section>
+
+      {/* ─── Section cards ────────────────────────────────────────────── */}
+      <section className="bg-[#0e0c09] px-6 py-20">
+        <div className="mx-auto max-w-5xl">
+          <p
+            className={`${playfair.className} mb-14 text-center text-[10px] uppercase tracking-[0.6em] text-amber-600/40`}
+          >
+            The Curriculum
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {sections.map((section) => {
+              const Icon = section.icon;
+              return (
+                <Link
+                  key={section.href}
+                  href={section.href}
+                  className="group flex flex-col gap-3 border border-amber-900/25 bg-[#131008] p-7 transition-all duration-300 hover:border-amber-700/40 hover:bg-[#1b1509]"
+                >
+                  {/* Top row: numeral + icon */}
+                  <div className="flex items-start justify-between">
+                    <span
+                      className={`${playfair.className} text-3xl font-light italic text-amber-700/35 transition-colors duration-300 group-hover:text-amber-600/55`}
+                    >
+                      {section.numeral}
+                    </span>
+                    <Icon className="mt-1 h-4 w-4 text-amber-700/35 transition-colors duration-300 group-hover:text-amber-600/55" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">
+
+                  {/* Title */}
+                  <h3
+                    className={`${playfair.className} text-lg font-semibold text-amber-50/85 transition-colors duration-300 group-hover:text-amber-50`}
+                  >
                     {section.title}
                   </h3>
-                  <p className="text-slate-400 mb-4">
+
+                  {/* Description */}
+                  <p className="text-sm leading-relaxed text-slate-500 transition-colors duration-300 group-hover:text-slate-400">
                     {section.description}
                   </p>
-                  <div className="flex items-center text-sm font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    Explore Interactive Demo
-                    <ArrowRight className="w-4 h-4 ml-2 text-blue-400 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Footer */}
-      <div className="border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-6 py-8 text-center text-slate-400">
-          <p>Linear Algebra Research Project • Interactive Computer Graphics Education</p>
+                  {/* Explore cta */}
+                  <div className="mt-1 flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-amber-700/40 transition-colors duration-300 group-hover:text-amber-600/70">
+                    <span>Explore</span>
+                    <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
