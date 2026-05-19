@@ -42,14 +42,14 @@ interface Demo {
 
 const DEMOS: Demo[] = [
   { name: 'Reflection (x₁-axis)', m: [[1, 0], [0, -1]], display: [['1', '0'], ['0', '−1']], desc: 'Flips every point across the horizontal axis' },
-  { name: 'Reflection (x₂-axis)', m: [[-1, 0], [0, 1]], display: [['−1', '0'], ['0', '1']], desc: 'Flips every point across the vertical axis', gif: '/demos/Reflection.gif' },
+  { name: 'Reflection (x₂-axis)', m: [[-1, 0], [0, 1]], display: [['−1', '0'], ['0', '1']], desc: 'Flips every point across the vertical axis'},
   { name: 'Horizontal Expansion', m: [[2, 0], [0, 1]], display: [['k', '0'], ['0', '1']], desc: 'Scales x by factor k (shown: k = 2)' },
   { name: 'Vertical Expansion', m: [[1, 0], [0, 2]], display: [['1', '0'], ['0', 'k']], desc: 'Scales y by factor k (shown: k = 2)' },
   { name: 'Horizontal Shear', m: [[1, 0], [1, 1]], display: [['1', '0'], ['k', '1']], desc: 'Slants shape horizontally (shown: k = 1)' },
   { name: 'Vertical Shear', m: [[1, 1], [0, 1]], display: [['1', 'k'], ['0', '1']], desc: 'Slants shape vertically (shown: k = 1)' },
   { name: 'Projection (x₁-axis)', m: [[1, 0], [0, 0]], display: [['1', '0'], ['0', '0']], desc: 'Collapses all points onto the x-axis' },
   { name: 'Projection (x₂-axis)', m: [[0, 0], [0, 1]], display: [['0', '0'], ['0', '1']], desc: 'Collapses all points onto the y-axis' },
-  { name: 'Rotation (θ = 45°)', m: [[C45, S45], [-S45, C45]], display: [['cos θ', 'sin θ'], ['−sin θ', 'cos θ']], desc: 'Rotates counter-clockwise by angle θ', gif: '/demos/Rotation.gif' },
+  { name: 'Rotation (θ = 45°)', m: [[C45, S45], [-S45, C45]], display: [['cos θ', 'sin θ'], ['−sin θ', 'cos θ']], desc: 'Rotates counter-clockwise by angle θ'},
 ]
 
 // ── Matrix display ─────────────────────────────────────────────────────────────

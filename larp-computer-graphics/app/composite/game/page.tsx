@@ -449,7 +449,7 @@ export default function CompositeGamePage() {
 
         <div className="mb-10 flex items-center justify-center gap-4">
           <span className="h-px w-16 bg-amber-300/30" />
-          <span className="text-[10px] font-light uppercase tracking-[0.55em] text-amber-300/50">Restaurant Remy</span>
+          <span className="text-[10px] font-light uppercase tracking-[0.55em] text-amber-300/50">Gusteau’s</span>
           <span className="h-px w-16 bg-amber-300/30" />
         </div>
 
@@ -487,7 +487,7 @@ export default function CompositeGamePage() {
 
             <button
               onClick={startGame}
-              className="group relative inline-block overflow-hidden border border-amber-200/45 px-12 py-[13px]"
+              className="w-full group relative inline-block overflow-hidden border border-amber-200/45 px-12 py-[13px]"
             >
               <span className="absolute inset-0 translate-y-full bg-amber-100 transition-transform duration-500 ease-in-out group-hover:translate-y-0" aria-hidden="true" />
               <span className="relative z-10 text-[11px] font-normal uppercase tracking-[0.5em] text-amber-100 transition-all duration-500 group-hover:tracking-[0.65em] group-hover:text-slate-800">
