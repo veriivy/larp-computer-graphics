@@ -12,123 +12,182 @@ const playfair = Playfair_Display({
 })
 
 type Pt = [number, number]
+type H3 = [number, number, number]  // [x_2d, w_homog, y_2d] — w_homog maps to "up" in scene
 
-function drawHomogScene(canvas: HTMLCanvasElement, px: number, py: number, h: number, k: number) {
+// Shape used in the homogeneous visualization (scaled to fit well in the W=1 plane)
+const DEMO_SHAPE: Pt[] = [
+  [ 0.04,  0.70], [ 0.24,  0.52], [ 0.36,  0.20],
+  [ 0.34, -0.10], [ 0.22, -0.36], [ 0.04, -0.44],
+  [-0.04, -0.44], [-0.22, -0.36], [-0.34, -0.10],
+  [-0.36,  0.20], [-0.24,  0.52], [-0.04,  0.70],
+]
+
+// 3D visualization: shows a shape at w=1 (the canonical w=1 plane, amber)
+// and the same shape at w=wVal (cream, floating in homogeneous space).
+// Dashed rays connect them, showing they represent the same 2D point.
+function drawHomogScene(canvas: HTMLCanvasElement, wVal: number, h: number, k: number) {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
   const W = canvas.width, H = canvas.height
-  const cx = W / 2, cy = H / 2
-  const sc = 55
+  const scx = W * 0.50, scy = H * 0.52
 
-  ctx.fillStyle = '#100e0b'
+  const VY = -0.42, VP = -0.40, VD = 13, VSCL = 60, centW = 1.3
+
+  function w2s([x, wh, y]: H3): [number, number] {
+    let wx = x, wy = wh - centW, wz = y
+    const cyy = Math.cos(VY), syy = Math.sin(VY)
+    const nx = cyy*wx + syy*wz; wz = -syy*wx + cyy*wz; wx = nx
+    const cpp = Math.cos(VP), spp = Math.sin(VP)
+    const ny = cpp*wy - spp*wz; wz = spp*wy + cpp*wz; wy = ny
+    const dz = wz + VD
+    if (dz < 0.01) return [scx, scy]
+    const s = VSCL * VD / dz
+    return [scx + wx*s, scy - wy*s]
+  }
+
+  ctx.fillStyle = '#0e0c09'
   ctx.fillRect(0, 0, W, H)
 
-  ctx.strokeStyle = '#1e1a14'
-  ctx.lineWidth = 1
-  for (let i = -6; i <= 6; i++) {
-    ctx.beginPath(); ctx.moveTo(cx + i * sc, 0); ctx.lineTo(cx + i * sc, H); ctx.stroke()
-    ctx.beginPath(); ctx.moveTo(0, cy + i * sc); ctx.lineTo(W, cy + i * sc); ctx.stroke()
-  }
+  // === COORDINATE AXES ===
+  const AL = 2.6
+  const [o0, o1] = w2s([0, 0, 0])
 
-  ctx.strokeStyle = '#3d3020'
   ctx.lineWidth = 1.5
-  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke()
-  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke()
+  ctx.strokeStyle = '#3a2a18'
+  const [xx, xy] = w2s([AL, 0, 0])
+  ctx.beginPath(); ctx.moveTo(o0, o1); ctx.lineTo(xx, xy); ctx.stroke()
+  const [yx, yy] = w2s([0, 0, AL])
+  ctx.beginPath(); ctx.moveTo(o0, o1); ctx.lineTo(yx, yy); ctx.stroke()
+  ctx.strokeStyle = '#6a4020'
+  const [wx2, wy2] = w2s([0, AL, 0])
+  ctx.beginPath(); ctx.moveTo(o0, o1); ctx.lineTo(wx2, wy2); ctx.stroke()
 
-  ctx.fillStyle = '#4a3828'
-  ctx.font = '11px monospace'
-  ctx.textAlign = 'center'
-  for (let i = -5; i <= 5; i++) {
-    if (i === 0) continue
-    ctx.fillText(String(i), cx + i * sc, cy + 14)
-  }
-  ctx.textAlign = 'right'
-  for (let i = -4; i <= 4; i++) {
-    if (i === 0) continue
-    ctx.fillText(String(-i), cx - 4, cy + i * sc + 4)
-  }
-  ctx.fillStyle = '#5a4535'
-  ctx.textAlign = 'left'
-  ctx.fillText('x', W - 10, cy - 5)
-  ctx.fillText('y', cx + 6, 13)
-
-  const toC = (p: Pt): Pt => [cx + p[0] * sc, cy - p[1] * sc]
-
-  const [ax, ay] = toC([px, py])
-  const [bx, by] = toC([px + h, py + k])
-
-  if (h !== 0 || k !== 0) {
-    ctx.strokeStyle = '#f59e0b80'
-    ctx.lineWidth = 2
-    ctx.setLineDash([5, 4])
-    ctx.beginPath()
-    ctx.moveTo(ax, ay)
-    ctx.lineTo(bx, by)
-    ctx.stroke()
-    ctx.setLineDash([])
-
+  const ctx2 = ctx
+  function arrowHead(ax: number, ay: number, bx: number, by: number, col: string) {
     const angle = Math.atan2(by - ay, bx - ax)
-    ctx.fillStyle = '#f59e0b'
-    ctx.beginPath()
-    ctx.moveTo(bx, by)
-    ctx.lineTo(bx - 10 * Math.cos(angle - 0.4), by - 10 * Math.sin(angle - 0.4))
-    ctx.lineTo(bx - 10 * Math.cos(angle + 0.4), by - 10 * Math.sin(angle + 0.4))
-    ctx.closePath()
-    ctx.fill()
+    ctx2.fillStyle = col
+    ctx2.beginPath()
+    ctx2.moveTo(bx, by)
+    ctx2.lineTo(bx - 8*Math.cos(angle-0.35), by - 8*Math.sin(angle-0.35))
+    ctx2.lineTo(bx - 8*Math.cos(angle+0.35), by - 8*Math.sin(angle+0.35))
+    ctx2.closePath(); ctx2.fill()
   }
-
-  const [ox, oy] = toC([px, py])
-  ctx.beginPath()
-  ctx.arc(ox, oy, 8, 0, Math.PI * 2)
-  ctx.fillStyle = '#d97706'
-  ctx.fill()
-  ctx.strokeStyle = '#92400e'
-  ctx.lineWidth = 2
-  ctx.stroke()
-  ctx.fillStyle = '#fcd34d'
-  ctx.font = 'bold 11px monospace'
-  ctx.textAlign = 'left'
-  ctx.fillText(`(${px}, ${py})`, ox + 12, oy - 5)
-
-  if (h !== 0 || k !== 0) {
-    const [tx, ty] = toC([px + h, py + k])
-    ctx.beginPath()
-    ctx.arc(tx, ty, 8, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(254,243,199,0.9)'
-    ctx.fill()
-    ctx.strokeStyle = '#d97706'
-    ctx.lineWidth = 2
-    ctx.stroke()
-    ctx.fillStyle = '#fef3c7'
-    ctx.font = 'bold 11px monospace'
-    ctx.textAlign = 'left'
-    ctx.fillText(`(${px + h}, ${py + k})`, tx + 12, ty - 5)
-  }
+  arrowHead(o0, o1, xx, xy, '#3a2a18')
+  arrowHead(o0, o1, yx, yy, '#3a2a18')
+  arrowHead(o0, o1, wx2, wy2, '#6a4020')
 
   ctx.font = '11px monospace'
-  ctx.textAlign = 'left'
-  ctx.fillStyle = '#d97706'
-  ctx.fillRect(10, 10, 11, 11)
-  ctx.fillStyle = '#7a5c3a'
-  ctx.fillText('Point (x, y)', 25, 19)
-  if (h !== 0 || k !== 0) {
-    ctx.fillStyle = 'rgba(254,243,199,0.9)'
-    ctx.fillRect(10, 27, 11, 11)
-    ctx.fillStyle = '#7a5c3a'
-    ctx.fillText('Translated', 25, 36)
-    ctx.strokeStyle = '#f59e0b80'
-    ctx.lineWidth = 2
-    ctx.setLineDash([4, 3])
-    ctx.beginPath(); ctx.moveTo(10, 49); ctx.lineTo(21, 49); ctx.stroke()
+  const [lxx, lxy] = w2s([AL+0.25, 0, 0])
+  const [lyx, lyy] = w2s([0, 0, AL+0.25])
+  const [lwx, lwy] = w2s([0, AL+0.25, 0])
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#4a3828'; ctx.fillText('x', lxx, lxy)
+  ctx.fillStyle = '#4a3828'; ctx.fillText('y', lyx, lyy)
+  ctx.fillStyle = '#9a6030'; ctx.fillText('w', lwx, lwy)
+
+  // === W=1 FLOOR GRID ===
+  const GE = 2.1, GN = 5
+  ctx.strokeStyle = '#201a0f'
+  ctx.lineWidth = 0.5
+  for (let i = 0; i <= GN; i++) {
+    const t = -GE + (2*GE/GN)*i
+    const [ax, ay] = w2s([t, 1, -GE])
+    const [bx, by] = w2s([t, 1,  GE])
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke()
+    const [cx2, cy2] = w2s([-GE, 1, t])
+    const [dx, dy]   = w2s([ GE, 1, t])
+    ctx.beginPath(); ctx.moveTo(cx2, cy2); ctx.lineTo(dx, dy); ctx.stroke()
+  }
+
+  const fc = [[-GE,1,-GE],[GE,1,-GE],[GE,1,GE],[-GE,1,GE]].map(c => w2s(c as H3))
+  ctx.fillStyle = '#f59e0b06'
+  ctx.beginPath(); ctx.moveTo(fc[0][0], fc[0][1])
+  fc.slice(1).forEach(([p, q]) => ctx.lineTo(p, q)); ctx.closePath(); ctx.fill()
+  ctx.strokeStyle = '#f59e0b30'; ctx.lineWidth = 1.5
+  ctx.beginPath(); ctx.moveTo(fc[0][0], fc[0][1])
+  fc.slice(1).forEach(([p, q]) => ctx.lineTo(p, q)); ctx.closePath(); ctx.stroke()
+
+  const [wlx, wly] = w2s([-GE-0.1, 1, 0])
+  ctx.fillStyle = '#f59e0b48'; ctx.font = '10px monospace'; ctx.textAlign = 'right'
+  ctx.fillText('w = 1', wlx, wly)
+
+  // === GHOST SHAPE at origin (before translation) ===
+  const hasTranslation = Math.abs(h) > 0.01 || Math.abs(k) > 0.01
+  if (hasTranslation) {
+    const gp = DEMO_SHAPE.map(([sx, sy]) => w2s([sx, 1, sy]))
+    ctx.strokeStyle = 'rgba(217,119,6,0.22)'; ctx.lineWidth = 1; ctx.setLineDash([2, 3])
+    ctx.beginPath(); ctx.moveTo(gp[0][0], gp[0][1])
+    gp.slice(1).forEach(([p, q]) => ctx.lineTo(p, q)); ctx.closePath(); ctx.stroke()
     ctx.setLineDash([])
-    ctx.fillStyle = '#7a5c3a'
-    ctx.fillText('Translation', 25, 52)
+
+    // Translation arrow on the w=1 plane
+    const [oax, oay] = w2s([0, 1, 0])
+    const [tax, tay] = w2s([h, 1, k])
+    ctx.strokeStyle = 'rgba(251,191,36,0.45)'; ctx.lineWidth = 1.5
+    ctx.beginPath(); ctx.moveTo(oax, oay); ctx.lineTo(tax, tay); ctx.stroke()
+    arrowHead(oax, oay, tax, tay, 'rgba(251,191,36,0.60)')
+  }
+
+  // === TRANSLATED SHAPE at w=1 (amber) ===
+  const fp = DEMO_SHAPE.map(([sx, sy]) => w2s([sx + h, 1, sy + k]))
+  ctx.fillStyle = 'rgba(217,119,6,0.14)'; ctx.strokeStyle = 'rgba(217,119,6,0.72)'; ctx.lineWidth = 2
+  ctx.beginPath(); ctx.moveTo(fp[0][0], fp[0][1])
+  fp.slice(1).forEach(([p, q]) => ctx.lineTo(p, q)); ctx.closePath(); ctx.fill(); ctx.stroke()
+  fp.forEach(([p, q]) => {
+    ctx.beginPath(); ctx.arc(p, q, 2, 0, Math.PI*2)
+    ctx.fillStyle = 'rgba(253,186,116,0.68)'; ctx.fill()
+  })
+
+  if (Math.abs(wVal - 1) > 0.04) {
+    // === PROJECTION RAYS (floor → floating shape) ===
+    ctx.strokeStyle = 'rgba(254,243,199,0.13)'; ctx.lineWidth = 1; ctx.setLineDash([2, 4])
+    DEMO_SHAPE.forEach(([sx, sy], i) => {
+      const [fx, fy] = fp[i]
+      const [lx2, ly2] = w2s([(sx+h)*wVal, wVal, (sy+k)*wVal])
+      ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(lx2, ly2); ctx.stroke()
+    })
+    ctx.setLineDash([])
+
+    // === FLOATING SHAPE at w=wVal (cream) ===
+    const lp = DEMO_SHAPE.map(([sx, sy]) => w2s([(sx+h)*wVal, wVal, (sy+k)*wVal]))
+    ctx.fillStyle = 'rgba(254,243,199,0.10)'; ctx.strokeStyle = 'rgba(254,243,199,0.78)'; ctx.lineWidth = 2
+    ctx.beginPath(); ctx.moveTo(lp[0][0], lp[0][1])
+    lp.slice(1).forEach(([p, q]) => ctx.lineTo(p, q)); ctx.closePath(); ctx.fill(); ctx.stroke()
+    lp.forEach(([p, q]) => {
+      ctx.beginPath(); ctx.arc(p, q, 2.5, 0, Math.PI*2)
+      ctx.fillStyle = 'rgba(254,243,199,0.82)'; ctx.fill()
+    })
+  }
+
+  // === TICK on W AXIS at current wVal ===
+  const [tm0, tm1] = w2s([0, wVal, 0])
+  ctx.beginPath(); ctx.arc(tm0, tm1, 4, 0, Math.PI*2)
+  ctx.fillStyle = '#f59e0b'; ctx.fill()
+  ctx.fillStyle = 'rgba(254,243,199,0.65)'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left'
+  ctx.fillText(`w = ${wVal.toFixed(1)}`, tm0 + 8, tm1 + 4)
+
+  // === LEGEND ===
+  ctx.font = '10px monospace'; ctx.textAlign = 'left'
+  let ly = 10
+  if (hasTranslation) {
+    ctx.strokeStyle = 'rgba(217,119,6,0.22)'; ctx.lineWidth = 1; ctx.setLineDash([2, 3])
+    ctx.strokeRect(10, ly, 10, 10); ctx.setLineDash([])
+    ctx.fillStyle = '#5a4030'; ctx.fillText('(x, y, 1) — original', 24, ly + 9)
+    ly += 17
+  }
+  ctx.fillStyle = 'rgba(217,119,6,0.72)'; ctx.fillRect(10, ly, 10, 10)
+  ctx.fillStyle = '#7a5c3a'; ctx.fillText('(x+h, y+k, 1) — translated', 24, ly + 9)
+  if (Math.abs(wVal - 1) > 0.04) {
+    ly += 17
+    ctx.fillStyle = 'rgba(254,243,199,0.78)'; ctx.fillRect(10, ly, 10, 10)
+    ctx.fillStyle = '#7a5c3a'; ctx.fillText(`w·(x+h, y+k, 1)  at  w = ${wVal.toFixed(1)}`, 24, ly + 9)
   }
 }
 
-function SliderRow({ label, value, min, max, onChange }: {
-  label: string; value: number; min: number; max: number; onChange: (v: number) => void
+function SliderRow({ label, value, min, max, step = 1, onChange }: {
+  label: string; value: number; min: number; max: number; step?: number; onChange: (v: number) => void
 }) {
+  const display = step < 1 ? value.toFixed(1) : String(value)
   return (
     <div className="flex items-center gap-4">
       <label className="text-amber-700/60 text-sm font-mono w-8">{label}</label>
@@ -136,11 +195,12 @@ function SliderRow({ label, value, min, max, onChange }: {
         type="range"
         min={min}
         max={max}
+        step={step}
         value={value}
         onChange={e => onChange(Number(e.target.value))}
         className="flex-1 accent-amber-500"
       />
-      <span className="text-amber-100/70 font-mono text-sm w-8 text-right">{value}</span>
+      <span className="text-amber-100/70 font-mono text-sm w-10 text-right">{display}</span>
     </div>
   )
 }
@@ -167,15 +227,14 @@ function Matrix3x3({ values, highlight }: { values: (number | string)[][]; highl
 }
 
 export default function HomogeneousPage() {
-  const [px, setPx] = useState(1)
-  const [py, setPy] = useState(2)
-  const [h, setH] = useState(2)
-  const [k, setK] = useState(-1)
+  const [wVal, setWVal] = useState(1.8)
+  const [h, setH] = useState(1)
+  const [k, setK] = useState(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    if (canvasRef.current) drawHomogScene(canvasRef.current, px, py, h, k)
-  }, [px, py, h, k])
+    if (canvasRef.current) drawHomogScene(canvasRef.current, wVal, h, k)
+  }, [wVal, h, k])
 
   const matrix: (number | string)[][] = [
     [1, 0, 0],
@@ -258,53 +317,51 @@ export default function HomogeneousPage() {
         </div>
 
         <div className="border border-amber-900/25 bg-[#131008] p-6 mb-10">
-          <h2 className={`${playfair.className} text-xl font-semibold text-amber-100 mb-2`}>Interactive Demo</h2>
+          <h2 className={`${playfair.className} text-xl font-semibold text-amber-100 mb-2`}>Homogeneous Coordinates Demonstration</h2>
           <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-            Adjust the point position and translation vector. Watch the matrix update and the point move.
+            Set the translation vector (h, k) to move the shape on the w = 1 plane, then adjust w to see the same
+            translated point floating in homogeneous space.
           </p>
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-[1fr_320px] gap-8">
             <canvas
               ref={canvasRef}
-              width={480}
-              height={360}
+              width={520}
+              height={420}
               className="w-full border border-amber-900/25"
             />
-            <div className="space-y-6">
-              <div>
-                <p className={`${playfair.className} text-sm font-semibold text-amber-200/70 mb-3`}>Point coordinates</p>
-                <div className="space-y-3">
-                  <SliderRow label="x" value={px} min={-4} max={4} onChange={setPx} />
-                  <SliderRow label="y" value={py} min={-4} max={4} onChange={setPy} />
-                </div>
-              </div>
+            <div className="space-y-5">
               <div>
                 <p className={`${playfair.className} text-sm font-semibold text-amber-200/70 mb-3`}>Translation vector</p>
                 <div className="space-y-3">
-                  <SliderRow label="h" value={h} min={-4} max={4} onChange={setH} />
-                  <SliderRow label="k" value={k} min={-4} max={4} onChange={setK} />
+                  <SliderRow label="h" value={h} min={-2} max={2} onChange={setH} />
+                  <SliderRow label="k" value={k} min={-2} max={2} onChange={setK} />
                 </div>
+              </div>
+              <div>
+                <p className={`${playfair.className} text-sm font-semibold text-amber-200/70 mb-3`}>Homogeneous weight</p>
+                <SliderRow label="w" value={wVal} min={0.8} max={2.5} step={0.1} onChange={setWVal} />
               </div>
               <div className="bg-[#0e0c09] border border-amber-900/20 p-4">
                 <p className="text-[10px] uppercase tracking-[0.4em] text-amber-700/50 mb-3">Matrix equation</p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="font-mono text-amber-400/80 text-xs">[{px}, {py}, 1] ·</span>
+                <div className="flex flex-wrap items-center gap-2.5 mb-3">
+                  <span className="font-mono text-amber-400/80 text-xs">[x, y, 1] ·</span>
                   <Matrix3x3 values={matrix} highlight={[[2,0],[2,1]]} />
-                  <span className="text-slate-500">=</span>
-                  <span className="font-mono text-amber-200/70 text-xs">[{px+h}, {py+k}, 1]</span>
+                  <span className="text-slate-500 text-xs">=</span>
+                  <span className="font-mono text-amber-200/70 text-xs">[x+{h}, y+{k}, 1]</span>
                 </div>
-              </div>
-              <div className="bg-[#0e0c09] border border-amber-900/20 p-4 space-y-1.5">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-500">Original point</span>
-                  <span className="font-mono text-amber-400/80">({px}, {py})</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-500">Translation</span>
-                  <span className="font-mono text-amber-300/60">(+{h}, +{k})</span>
-                </div>
-                <div className="flex justify-between text-xs font-semibold border-t border-amber-900/20 pt-1.5">
-                  <span className="text-slate-400">Result</span>
-                  <span className="font-mono text-amber-200/80">({px+h}, {py+k})</span>
+                <div className="space-y-1 border-t border-amber-900/20 pt-3">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">translation</span>
+                    <span className="font-mono text-amber-300/60">(+{h}, +{k})</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">homogeneous w</span>
+                    <span className="font-mono text-amber-300/60">{wVal.toFixed(1)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs font-semibold pt-1">
+                    <span className="text-slate-400">floating coords</span>
+                    <span className="font-mono text-amber-100/60 text-[10px]">({wVal.toFixed(1)}·(x+{h}), {wVal.toFixed(1)}·(y+{k}), {wVal.toFixed(1)})</span>
+                  </div>
                 </div>
               </div>
             </div>

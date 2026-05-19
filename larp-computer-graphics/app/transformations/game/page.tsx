@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Playfair_Display } from 'next/font/google'
 import Link from 'next/link'
-import { RotateCcw, Clock, Star, Trophy } from 'lucide-react'
+import { RotateCcw, Clock, Star, Trophy, ArrowLeft } from 'lucide-react'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -535,6 +535,15 @@ export default function TransformationGamePage() {
           </div>
 
         </div>
+
+        <div className="mt-8 flex justify-start">
+          <Link
+            href="/transformations"
+            className="inline-flex items-center gap-2 px-5 py-2.5 border border-amber-900/40 text-amber-200/60 text-sm hover:border-amber-700/50 hover:text-amber-200/80 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Basic Transformations
+          </Link>
+        </div>
       </div>
     </div>
   )
@@ -697,6 +706,12 @@ export default function TransformationGamePage() {
         )}
 
         <div className="flex gap-3 justify-center">
+          <Link
+            href="/transformations"
+            className="inline-flex items-center gap-2 px-6 py-3 border border-amber-900/40 text-amber-200/60 text-sm hover:border-amber-700/50 hover:text-amber-200/80 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Transformations
+          </Link>
           <button
             onClick={startGame}
             className="inline-flex items-center gap-2 px-6 py-3 border border-amber-900/40 text-amber-200/60 text-sm hover:border-amber-700/50 hover:text-amber-200/80 transition-colors"

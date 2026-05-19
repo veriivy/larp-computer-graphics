@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Playfair_Display } from 'next/font/google'
 import Link from 'next/link'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -182,14 +183,20 @@ export default function TransformationsPage() {
           {DEMOS.map(demo => <TransformCard key={demo.name} demo={demo} />)}
         </div>
 
-        <div className="text-center">
+        <div className="flex justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-5 py-2.5 border border-amber-900/40 text-amber-200/60 text-sm hover:border-amber-700/50 hover:text-amber-200/80 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Home
+          </Link>
           <Link
             href="/transformations/game"
-            className="group relative inline-block overflow-hidden border border-amber-200/45 px-12 py-[13px]"
+            className="group relative inline-block overflow-hidden border border-amber-200/45 px-6 py-2.5"
           >
             <span className="absolute inset-0 translate-y-full bg-amber-100 transition-transform duration-500 ease-in-out group-hover:translate-y-0" aria-hidden="true" />
-            <span className="relative z-10 text-[11px] font-normal uppercase tracking-[0.5em] text-amber-100 transition-all duration-500 group-hover:tracking-[0.65em] group-hover:text-slate-800">
-              Next
+            <span className="relative z-10 text-[11px] font-normal uppercase tracking-[0.4em] text-amber-100 transition-all duration-500 group-hover:text-slate-800 inline-flex items-center gap-2">
+              Play Game <ArrowRight className="w-3 h-3" />
             </span>
           </Link>
         </div>

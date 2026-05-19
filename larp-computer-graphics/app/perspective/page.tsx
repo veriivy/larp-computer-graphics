@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Playfair_Display } from 'next/font/google'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -528,8 +528,7 @@ export default function PerspectivePage() {
             3D Perspective Projection
           </h1>
           <p className="text-slate-400 max-w-2xl mx-auto leading-relaxed text-sm">
-            How do 3D objects appear on a 2D screen? Perspective projection uses similar triangles to map a 3D scene onto a flat plane —
-            the same math that powers every modern game and film.
+            How do 3D objects appear on a 2D screen? Perspective projection uses similar triangles to map a 3D scene onto a flat plane
           </p>
         </div>
 
@@ -599,7 +598,7 @@ export default function PerspectivePage() {
 
         <div className="border border-amber-900/25 bg-[#131008] p-6 mb-10">
           <div className="flex items-center justify-between mb-2">
-            <h2 className={`${playfair.className} text-xl font-semibold text-amber-100`}>Live Demo: Perspective Projection</h2>
+            <h2 className={`${playfair.className} text-xl font-semibold text-amber-100`}>Perspective Projection Demonstration</h2>
             <button
               onClick={() => setRunning(r => !r)}
               className="px-4 py-1.5 border border-amber-900/40 text-amber-200/60 text-sm hover:border-amber-700/50 hover:text-amber-200/80 transition-colors"
@@ -607,11 +606,11 @@ export default function PerspectivePage() {
               {running ? 'Pause' : 'Resume'}
             </button>
           </div>
-          <p className="text-slate-400 text-sm mb-5 leading-relaxed">
+          {/* <p className="text-slate-400 text-sm mb-5 leading-relaxed">
             Left: 3D scene showing the camera, frustum cone, and the projection plane as a tilted screen — cream dots are individual projected vertices.
             Middle: side-profile schematic showing depth, frustum angle, and how rays hit the plane.
             Right: the clean 2D result.
-          </p>
+          </p> */}
 
           <div className="grid sm:grid-cols-3 gap-4 mb-6">
             <div>
@@ -703,17 +702,25 @@ export default function PerspectivePage() {
               <p className="text-slate-400 leading-relaxed">Perspective projection collapses Z, mapping 3D coordinates to 2D pixel positions.</p>
             </div>
           </div>
-          <p className="text-slate-500 text-sm mt-4 leading-relaxed">
-            Every vertex in every 3D game goes through this pipeline, multiplied by a chain of matrices — exactly the composite transformations from Module III.
-          </p>
         </div>
 
-        <Link
-          href="/composite"
-          className="inline-flex items-center gap-2 px-5 py-2.5 border border-amber-900/40 text-amber-200/60 text-sm hover:border-amber-700/50 hover:text-amber-200/80 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Composite Transformations
-        </Link>
+        <div className="flex justify-between">
+          <Link
+            href="/composite"
+            className="inline-flex items-center gap-2 px-5 py-2.5 border border-amber-900/40 text-amber-200/60 text-sm hover:border-amber-700/50 hover:text-amber-200/80 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Composite
+          </Link>
+          <Link
+            href="/"
+            className="group relative inline-block overflow-hidden border border-amber-200/45 px-6 py-2.5"
+          >
+            <span className="absolute inset-0 translate-y-full bg-amber-100 transition-transform duration-500 ease-in-out group-hover:translate-y-0" aria-hidden="true" />
+            <span className="relative z-10 text-[11px] font-normal uppercase tracking-[0.4em] text-amber-100 transition-all duration-500 group-hover:text-slate-800 inline-flex items-center gap-2">
+              Home <ArrowRight className="w-3 h-3" />
+            </span>
+          </Link>
+        </div>
       </div>
     </div>
   )
